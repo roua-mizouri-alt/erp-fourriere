@@ -1,0 +1,840 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>نظام إدارة المأوى البلدي</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#eef2f7;color:#172033;direction:rtl}
+button,input,select{font:inherit}
+button{cursor:pointer;border:0}
+.hidden{display:none!important}
+.app{min-height:100vh}
+.topbar{height:68px;background:#0f172a;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 22px;position:sticky;top:0;z-index:20}
+.brand{font-weight:800}.brand small{display:block;color:#94a3b8;font-weight:400;margin-top:2px}
+.userbox{display:flex;align-items:center;gap:12px;font-size:13px}.logout{background:#334155;color:#fff;padding:9px 13px;border-radius:8px}
+.plate-step{border:1px solid #dbeafe;background:#f8fafc;border-radius:10px;padding:12px}.plate-step select,.plate-step input{font-size:16px}
+.layout{display:grid;grid-template-columns:235px 1fr;min-height:calc(100vh - 68px)}
+.side{background:#fff;border-right:1px solid #e2e8f0;padding:16px;position:sticky;top:68px;height:calc(100vh - 68px)}
+.side button{width:100%;background:#f8fafc;color:#334155;text-align:right;padding:12px;border-radius:9px;margin-bottom:7px}
+.side button.active,.side button:hover{background:#e2e8f0}
+.main{padding:22px;max-width:1500px;width:100%;margin:auto}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.card{background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:18px;margin-bottom:16px;box-shadow:0 2px 7px #0f172a0a}
+.stat{font-size:28px;font-weight:800;margin-top:5px}.muted{color:#64748b;font-size:13px}
+h2{margin:0 0 15px;font-size:19px}h3{margin:0 0 10px;font-size:15px}
+input,select{width:100%;padding:11px 12px;border:1px solid #cbd5e1;border-radius:8px;background:#fff;outline:none}
+input:focus,select:focus{border-color:#2563eb;box-shadow:0 0 0 3px #2563eb18}
+label{display:block;font-size:12px;font-weight:700;color:#475569;margin-bottom:6px}
+.formgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.btn{padding:11px 15px;border-radius:8px;font-weight:700}.primary{background:#2563eb;color:#fff}.success{background:#16a34a;color:#fff}.danger{background:#dc2626;color:#fff}.warning{background:#d97706;color:#fff}.ghost{background:#e2e8f0;color:#334155}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.tablewrap{overflow:auto}table{width:100%;border-collapse:collapse;min-width:900px}th,td{padding:11px 10px;border-bottom:1px solid #e5e7eb;text-align:right;font-size:13px}th{background:#f8fafc;color:#475569;position:sticky;top:0}
+.badge{display:inline-block;padding:4px 8px;border-radius:999px;font-size:11px;font-weight:800}.bgreen{background:#dcfce7;color:#166534}.bred{background:#fee2e2;color:#991b1b}.bblue{background:#dbeafe;color:#1e40af}.bgray{background:#e2e8f0;color:#475569}
+.searchbar{display:grid;grid-template-columns:1fr auto;gap:8px}.notice{padding:10px;border-radius:8px;background:#eff6ff;color:#1e40af;font-size:13px;margin-top:10px}
+.login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:linear-gradient(135deg,#0f172a,#1e3a8a)}
+.loginbox{width:100%;max-width:410px;background:#fff;padding:30px;border-radius:18px;box-shadow:0 20px 60px #0005}.loginbox h1{text-align:center;margin:0 0 6px}.loginbox p{text-align:center;color:#64748b}.pin{font-size:25px;text-align:center;letter-spacing:7px}
+.toast{position:fixed;right:20px;bottom:20px;background:#0f172a;color:#fff;padding:13px 17px;border-radius:9px;display:none;z-index:99}
+.modal{position:fixed;inset:0;background:#0008;display:flex;align-items:center;justify-content:center;padding:18px;z-index:50}.modalbox{background:#fff;border-radius:14px;padding:22px;max-width:700px;width:100%;max-height:90vh;overflow:auto}
+.receipt{font-family:Arial;border:1px solid #ddd;padding:22px}.receipt h2{text-align:center}.receipt .line{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed #ccc}
+@media(max-width:1050px){.layout{grid-template-columns:1fr}.side{position:static;height:auto;display:flex;overflow:auto}.side button{min-width:150px}.grid{grid-template-columns:repeat(2,1fr)}.formgrid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:650px){.grid,.grid2,.formgrid{grid-template-columns:1fr}.topbar{padding:0 12px}.main{padding:12px}}
+@media print{body *{visibility:hidden!important}.printarea,.printarea *{visibility:visible!important}.printarea{position:absolute;left:0;top:0;width:100%}.no-print{display:none!important}}
+</style>
+
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0f766e">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="المأوى البلدي">
+<link rel="apple-touch-icon" href="icon-192.png">
+
+</head>
+<body>
+
+<div id="loginPage" class="login">
+  <div class="loginbox">
+    <div style="text-align:center;font-size:45px"></div>
+    <h1>المأوى البلدي</h1>
+    <p>نظام إدارة المأوى البلدي</p>
+    <label>رمز الدخول</label>
+    <input id="loginPin" class="pin" type="password" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="••••">
+    <button id="loginBtn" class="btn primary" style="width:100%;margin-top:8px">تسجيل الدخول</button>
+    <div id="loginError" class="notice hidden" style="background:#fee2e2;color:#991b1b">رمز الدخول غير صحيح.</div>
+    <div class="muted" style="text-align:center;margin-top:15px">رموز الدخول غير معروضة على الشاشة.</div>
+  </div>
+</div>
+
+<div id="app" class="app hidden">
+<header class="topbar">
+  <div class="brand">المأوى البلدي <small>نظام الإدارة</small></div>
+  <div class="userbox"><span id="currentUser"></span><button id="logoutBtn" class="logout">تسجيل الخروج</button></div>
+</header>
+
+<div class="layout">
+<aside class="side">
+  <button data-section="dashboard" class="active">لوحة القيادة</button>
+  <button data-section="entry">تسجيل دخول مركبة</button>
+  <button data-section="cashier">الصندوق وإخراج المركبات</button>
+  <button data-section="archive">قاعدة البيانات والسجل</button>
+  <button data-section="reports">التقارير والإحصائيات</button>
+  <button data-section="settings">التعريفات والإعدادات</button>
+</aside>
+
+<main class="main">
+
+<section id="dashboard" class="section">
+  <div class="grid">
+    <div class="card"><div class="muted">المركبات الموجودة</div><div id="sPresent" class="stat">0</div></div>
+    <div class="card"><div class="muted">المركبات التي تم إخراجها اليوم</div><div id="sReleased" class="stat">0</div></div>
+    <div class="card"><div class="muted">المداخيل</div><div id="sRevenue" class="stat">0 DT</div></div>
+    <div class="card"><div class="muted">الرسائل والإشعارات</div><div id="sSms" class="stat">0</div></div>
+  </div>
+  <div class="card">
+    <h2>تنبيهات المحجز</h2>
+    <div id="dashAlerts" class="notice">لا توجد تنبيهات.</div>
+  </div>
+  <div class="card">
+    <h2>آخر العمليات</h2>
+    <div id="dashLog" class="tablewrap"></div>
+  </div>
+</section>
+
+<section id="entry" class="section hidden">
+  <div class="card">
+    <h2>تسجيل دخول مركبة</h2>
+    <div class="notice">يقوم العون بإدخال بيانات المركبة، ويمكن للمستخدمين المخوّلين تعديل الملف.</div>
+    <div class="formgrid" style="margin-top:15px">
+      <div><label>نوع المركبة *</label><select id="eType"><option value="">— اختار نوع المركبة أولاً —</option></select></div>
+      <div><label>تاريخ دخول المركبة *</label><input id="eEntryDate" type="date" required></div>
+      <div id="eVehicleClassWrap" class="hidden" style="grid-column:1/-1"><label>الصنف الدقيق للمركبة</label><select id="eVehicleClass"></select></div>
+    </div>
+    <div id="plateCard" class="card hidden" style="margin-top:15px;background:#f8fafc;border:1px solid #dbeafe">
+      <label style="font-weight:700">1⃣ طريقة إدخال رقم التسجيل *</label>
+      <div class="notice" style="margin:8px 0">تتبدّل السلسلة حسب نوع المركبة. اختار السلسلة المطابقة لما هو مكتوب في شهادة التسجيل (بطاقة التسجيل).</div>
+      <div class="formgrid" style="margin-top:10px">
+        <div style="grid-column:1/-1"><select id="plateSeries"></select></div>
+      </div>
+      <div class="actions" style="margin-top:10px"><button type="button" id="fillPlateBtn" class="btn primary">إظهار خانات رقم التسجيل</button></div>
+      <div id="plateEntryBox" class="hidden" style="margin-top:12px;padding:12px;border:2px solid #0ea5e9;border-radius:8px;background:#e0f2fe">
+        <div class="formgrid">
+          <div><label>السلسلة</label><input id="plateSeriesDisplay" readonly></div>
+          <div id="plateNormalPartA" class="hidden"><label>الجزء الأول من رقم التسجيل *</label><input id="eMatPartA" inputmode="numeric" autocomplete="off" maxlength="3" placeholder="123"></div>
+          <div id="plateNormalPartB" class="hidden"><label>الجزء الثاني من رقم التسجيل *</label><input id="eMatPartB" inputmode="numeric" autocomplete="off" maxlength="4" placeholder="4567"></div>
+          <div id="plateSinglePart" class="hidden"><label>رقم التسجيل *</label><input id="eMatNumber" inputmode="numeric" autocomplete="off" maxlength="8" placeholder="12345"></div>
+          <div id="plateFreePart" class="hidden" style="grid-column:1/-1"><label>رقم التسجيل كما هو في الوثيقة *</label><input id="eMatFree" autocomplete="off" placeholder="اكتب رقم التسجيل كاملاً"></div>
+        </div>
+        <div id="plateHelp" class="small muted" style="margin-top:8px"></div>
+      </div>
+      <input id="eMat" type="hidden">
+    </div>
+    <div class="formgrid" style="margin-top:15px">
+      <div id="eCustomTypeWrap" class="hidden"><label>تحديد نوع المركبة (أخرى)</label><input id="eCustomType" placeholder="اكتب نوع المركبة"></div>
+      <div id="eCustomRemWrap" class="hidden"><label>معلوم الرفع يدويًا (DT)</label><input id="eCustomRem" type="number" min="0" step="0.01" placeholder="0.00"></div>
+      <div id="eCustomParkWrap" class="hidden"><label>معلوم الحراسة لليوم يدويًا (DT)</label><input id="eCustomPark" type="number" min="0" step="0.01" placeholder="0.00"></div>
+      <div><label>الصنف والطراز</label><input id="eCar"></div>
+      <div><label>اللون</label><input id="eColor"></div>
+      <div><label>رقم بطاقة تعريف المالك</label><input id="eCin"></div>
+      <div><label>اسم المالك</label><input id="eOwner"></div>
+      <div><label>رقم هاتف المالك للرسائل</label><input id="ePhone" placeholder="+216..."></div>
+      <div><label>سبب الحجز</label><input id="eReason"></div>
+      <div><label>الجهة الحاجزة *</label><select id="eAuthority">
+        <option value="حرس المرور">حرس المرور</option>
+        <option value="الأمن العمومي">الأمن العمومي</option>
+        <option value="الحرس البلدي">الحرس البلدي</option>
+        <option value="الديوانة">الديوانة</option>
+        <option value="مندوبية الفلاحة">مندوبية الفلاحة</option>
+        <option value="البلدية">البلدية</option>
+        <option value="جهة أخرى">جهة أخرى</option>
+      </select></div>
+      <div id="eAuthorityOtherWrap" class="hidden"><label>نوع الجهة الأخرى *</label><input id="eAuthorityOther" placeholder="اكتب اسم الجهة الحاجزة"></div>
+      <div><label>اسم العون المسؤول *</label><input id="eAuthorityName" placeholder="الاسم واللقب"></div>
+      <div style="grid-column:1/-1"><label>صورة أو نسخة ممسوحة من الوثيقة</label><input id="eDoc" type="file" accept="image/*,application/pdf" capture="environment"><div id="eDocInfo" class="small muted" style="margin-top:6px">اختياري — JPG, PNG أو PDF (بدون حدّ للحجم)</div></div>
+    </div>
+    <div class="actions"><button id="saveEntry" class="btn primary">حفظ التسجيل</button><button id="clearEntry" class="btn ghost">مسح الخانات</button></div>
+  </div>
+  <div class="card">
+    <h2>البحث عن المركبات الموجودة</h2>
+    <div class="searchbar"><input id="entrySearch" placeholder="ابحث برقم التسجيل أو بطاقة التعريف أو الاسم أو الهاتف..."><button id="entrySearchBtn" class="btn primary">بحث</button></div>
+    <div id="entryResults" style="margin-top:15px"></div>
+  </div>
+</section>
+
+<section id="cashier" class="section hidden">
+  <div class="card">
+    <h2>الصندوق — تأكيد الدفع وإخراج المركبة</h2>
+    <div class="notice">يقوم عون الصندوق بالبحث عن الملف والتحقق من المبلغ ثم تأكيد الدفع. بعد التأكيد تختفي المركبة من قائمة المركبات الموجودة وتبقى محفوظة في السجل.</div>
+    <div class="searchbar" style="margin-top:15px"><input id="cashSearch" placeholder="رقم التسجيل أو بطاقة التعريف أو الاسم أو الهاتف..."><button id="cashSearchBtn" class="btn primary">بحث</button></div>
+    <div id="cashResults" style="margin-top:15px"></div>
+  </div>
+  <div class="card">
+    <h2>الفاتورة</h2>
+    <div id="invoiceArea" class="muted">اختر مركبة لعرض الفاتورة.</div>
+  </div>
+</section>
+
+<section id="archive" class="section hidden">
+  <div class="card">
+    <h2>قاعدة البيانات والسجل</h2>
+    <div class="searchbar"><input id="archiveSearch" placeholder="ابحث في جميع السجلات..."><button type="button" id="archiveSearchBtn" class="btn primary" onclick="window.runArchiveSearchNow()">بحث</button></div>
+    <div id="archiveResults" style="margin-top:15px"></div>
+  </div>
+</section>
+
+
+<section id="reports" class="section hidden">
+  <div class="card">
+    <h2>التقارير والإحصائيات</h2>
+    <div class="notice">استخرج تقارير حسب الفترة والحالة، وصدّرها إلى Excel أو اطبعها بصيغة PDF من نافذة الطباعة.</div>
+    <div class="formgrid" style="margin-top:14px">
+      <div><label>من تاريخ</label><input id="reportFrom" type="date"></div>
+      <div><label>إلى تاريخ</label><input id="reportTo" type="date"></div>
+      <div><label>حالة المركبة</label><select id="reportStatus"><option value="all">الكل</option><option value="present">داخل المحجز</option><option value="released">تم الإخراج</option></select></div>
+      <div><label>صنف المركبة</label><select id="reportType"><option value="all">كل الأصناف</option></select></div>
+    </div>
+    <div class="actions"><button id="runReport" class="btn primary">إنشاء التقرير</button><button id="exportReport" class="btn success">تصدير Excel (CSV)</button><button id="printReport" class="btn ghost">طباعة / PDF</button></div>
+    <div id="reportSummary" class="grid" style="margin-top:12px"></div>
+    <div id="reportResults" style="margin-top:15px"></div>
+  </div>
+</section>
+
+<section id="settings" class="section hidden">
+  <div class="card">
+    <h2> التعريفات — الفني</h2>
+    <div class="notice">يتولى الفني ضبط التعريفات، ثم تُحتسب المبالغ آلياً عند إعداد الفاتورة.</div>
+    <div id="tariffForm" class="formgrid" style="margin-top:15px"></div>
+    <div class="actions"><button id="saveTariffs" class="btn success">حفظ التعريفات</button></div>
+  </div>
+  <div class="card">
+    <h2> الرسائل النصية</h2>
+    <div class="notice">تعتمد خدمة الرسائل على مزود الرسائل المرتبط بالخادم. تبقى مفاتيح الدخول محفوظة على الخادم ولا تُخزّن في المتصفح.</div>
+    <div class="formgrid" style="margin-top:15px">
+      <div><label>رقم الهاتف للتجربة</label><input id="smsTestPhone" placeholder="+216 XX XXX XXX" inputmode="tel"></div>
+      <div style="display:flex;align-items:end"><button id="testSmsBtn" class="btn primary" style="width:100%">تجربة إرسال رسالة</button></div>
+    </div>
+    <div id="smsServerStatus" class="muted" style="margin-top:10px">جارٍ التحقق من خدمة الرسائل…</div>
+  </div>
+  <div class="card">
+    <h2>إدارة النظام</h2>
+    <p class="muted">تحدد الصلاحيات ما يمكن لكل مستخدم القيام به. لا يُسمح بحذف السجلات نهائياً من الواجهة العادية.</p>
+    <button id="exportBtn" class="btn ghost">تصدير قاعدة البيانات</button>
+  </div>
+</section>
+
+
+</main>
+</div>
+</div>
+
+<div id="modal" class="modal hidden">
+  <div class="modalbox">
+    <div id="modalContent"></div>
+    <div class="actions no-print"><button id="modalClose" class="btn ghost">إغلاق</button></div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+(() => {
+const DB='fourriere_erp_v4_sans_exemples';
+const SHARED_API='/api/state';
+let sharedSyncBusy=false; let sharedLastVersion='';
+const SMS='fourriere_sms_v3';
+
+const USERS={
+  '9999':{name:'الفني — مدير النظام',role:'technician'},
+  '1111':{name:'رئيس المحجز',role:'chef'},
+  '2222':{name:'عون المحجز',role:'agent'},
+  '3333':{name:'عون الصندوق',role:'cashier'}
+};
+
+const defaultTariffs={
+  voiture:{label:'سيارة',remorquage:50,gardiennage:15},
+  moto:{label:'دراجة نارية',remorquage:30,gardiennage:8},
+  camion:{label:'شاحنة',remorquage:100,gardiennage:30},
+  camionette:{label:'سيارة نفعية',remorquage:70,gardiennage:22},
+  autre:{label:'أخرى',remorquage:60,gardiennage:18}
+};
+
+let state=load();
+async function loadSharedState(){try{const r=await fetch(SHARED_API,{cache:'no-store'});if(!r.ok)throw new Error('server');const d=await r.json();if(d&&d.state&&d.state.vehicles&&d.state.tariffs){state=d.state;localStorage.setItem(DB,JSON.stringify(state));sharedLastVersion=JSON.stringify(state);renderAll();return true;}return false;}catch(e){toast('تعذّر الاتصال بالخادم المحلي؛ تحقق من الشبكة');return false;}}
+async function pollSharedState(){if(sharedSyncBusy)return;try{const r=await fetch(SHARED_API,{cache:'no-store'});if(!r.ok)return;const d=await r.json();if(!d.state)return;const packed=JSON.stringify(d.state);if(packed!==sharedLastVersion){sharedSyncBusy=true;state=d.state;localStorage.setItem(DB,packed);sharedLastVersion=packed;if(current)renderAll();sharedSyncBusy=false;}}catch(e){/* network may briefly disconnect */}}
+setInterval(pollSharedState,2500);
+let current=null;
+let selected=null;
+
+function load(){
+  try{
+    const x=JSON.parse(localStorage.getItem(DB)||'null');
+    if(x&&x.vehicles&&x.tariffs){const ar={voiture:'سيارة',moto:'دراجة نارية',camion:'شاحنة',camionette:'سيارة نفعية',autre:'أخرى'};Object.keys(ar).forEach(k=>{if(x.tariffs[k])x.tariffs[k].label=ar[k]});return x;}
+  }catch(e){}
+  return {
+    vehicles:[],
+    tariffs:JSON.parse(JSON.stringify(defaultTariffs)),
+    logs:[],
+    invoiceNo:1000
+  };
+}
+function save(){const packed=JSON.stringify(state);localStorage.setItem(DB,packed);sharedLastVersion=packed;fetch(SHARED_API,{method:'POST',headers:{'Content-Type':'application/json'},body:packed}).then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);}).catch(()=>toast('تنبيه: لم يتم حفظ التغيير في الخادم المشترك'));}
+function smsLog(){try{return JSON.parse(localStorage.getItem(SMS)||'[]')}catch(e){return[]}}
+function saveSms(a){localStorage.setItem(SMS,JSON.stringify(a))}
+function toast(t){const x=document.getElementById('toast');x.textContent=t;x.style.display='block';setTimeout(()=>x.style.display='none',2800)}
+function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
+function money(n){return Number(n||0).toFixed(2)+' DT'}
+function fmt(d){return d?new Date(d).toLocaleString('ar-TN'): '-'}
+function isToday(d){return new Date(d).toDateString()===new Date().toDateString()}
+
+function bill(v){
+  const t=v.customTariffs || state.tariffs[v.type] || state.tariffs.autre;
+  const hours=Math.max(0,(Date.now()-new Date(v.entryAt).getTime())/3600000);
+  const days=Math.max(1,Math.ceil(hours/24));
+  const remorquage=Number(t.remorquage)||0;
+  const gardiennage=Number(t.gardiennage)||0;
+  const parking=days*gardiennage;
+  const subtotal=remorquage+parking;
+  // Réduction exceptionnelle de 30 % pour les véhicules entrés avant le 11/12/2025.
+  const eligible=!!v.entryAt && String(v.entryAt).slice(0,10)<'2025-12-11';
+  const discount=eligible?subtotal*0.30:0;
+  return {days,remorquage,gardiennage,parking,subtotal,eligible,discount,total:Math.round((subtotal-discount)*100)/100};
+}
+
+function can(role,action){
+  if(role==='technician') return true;
+  if(action==='entry') return role==='agent'||role==='chef';
+  if(action==='edit') return role==='agent'||role==='chef';
+  if(action==='cash') return role==='cashier'||role==='chef';
+  if(action==='archive') return true;
+  return false;
+}
+
+async function login(){
+  await loadSharedState();
+  const pin=document.getElementById('loginPin').value.trim();
+  const u=USERS[pin];
+  if(!u){document.getElementById('loginError').classList.remove('hidden');return}
+  current={...u};
+  document.getElementById('loginError').classList.add('hidden');
+  document.getElementById('loginPage').classList.add('hidden');
+  document.getElementById('app').classList.remove('hidden');
+  document.getElementById('currentUser').textContent=u.name+' · '+u.role;
+  setupRole();
+  log('Connexion',u.name);
+  renderAll();
+}
+function logout(){current=null;selected=null;document.getElementById('app').classList.add('hidden');document.getElementById('loginPage').classList.remove('hidden');document.getElementById('loginPin').value=''}
+
+function setupRole(){
+  document.querySelectorAll('[data-section]').forEach(b=>b.classList.remove('hidden'));
+  document.querySelector('[data-section="settings"]').classList.toggle('hidden',current.role!=='technician');
+  document.querySelector('[data-section="entry"]').classList.toggle('hidden',!can(current.role,'entry'));
+  document.querySelector('[data-section="cashier"]').classList.toggle('hidden',!can(current.role,'cash'));
+}
+
+function log(type,detail){
+  state.logs.unshift({at:new Date().toISOString(),type,detail,by:current?.name||'Système'});
+  state.logs=state.logs.slice(0,500);save();
+}
+
+function normalizePhone(phone){
+  let p=String(phone||'').trim().replace(/[\s().-]/g,'');
+  if(/^\d{8}$/.test(p)) p='+216'+p;
+  else if(/^216\d{8}$/.test(p)) p='+'+p;
+  return p;
+}
+async function sms(phone,message){
+  const p=normalizePhone(phone);
+  if(!p) return {sent:false,reason:'no-phone'};
+  try{
+    const r=await fetch('/api/sms/send',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({to:p,message})});
+    const data=await r.json().catch(()=>({}));
+    if(!r.ok || !data.ok) throw new Error(data.error||'خطأ في خادم الرسائل');
+    const a=smsLog();a.unshift({at:new Date().toISOString(),phone:p,message,sid:data.sid||null,real:true});saveSms(a.slice(0,500));
+    return {sent:true,sid:data.sid||null};
+  }catch(e){
+    const a=smsLog();a.unshift({at:new Date().toISOString(),phone:p,message,error:e.message,real:false});saveSms(a.slice(0,500));
+    return {sent:false,reason:e.message};
+  }
+}
+async function checkSmsServer(){
+  const el=document.getElementById('smsServerStatus');
+  if(!el)return;
+  try{
+    const r=await fetch('/api/sms/status');const d=await r.json();
+    el.textContent=d.configured?' خدمة الرسائل جاهزة ومضبوطة':'الخادم يعمل لكن خدمة الرسائل غير مضبوطة بعد';
+  }catch(e){el.textContent=' تعذّر العثور على خادم الرسائل. شغّل خادم المحجز.'}
+}
+async function testSms(){
+  const phone=normalizePhone(document.getElementById('smsTestPhone').value);
+  if(!phone){toast('⚠ أدخل رقم هاتف للتجربة');return}
+  try{
+    const r=await fetch('/api/sms/send',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({to:phone,message:'رسالة تجريبية — نظام المحجز البلدي: خدمة الرسائل تعمل.'})});
+    const d=await r.json().catch(()=>({}));
+    if(!r.ok||!d.ok)throw new Error(d.error||'فشل إرسال الرسالة');
+    const a=smsLog();a.unshift({at:new Date().toISOString(),phone,message:'Test SMS',sid:d.sid||null,real:true});saveSms(a.slice(0,500));
+    toast(' تم إرسال الرسالة');renderDashboard();
+  }catch(e){toast('❌ لم يتم إرسال الرسالة: '+e.message)}
+}
+
+function renderAll(){renderTypes();renderTariffs();renderSelectedTariffPreview();renderDashboard();renderEntryResults();renderCashResults();renderArchive();renderInvoice()}
+function renderTypes(){
+  const s=document.getElementById('eType');
+  const order=[['voiture','سيارة'],['moto','دراجة نارية'],['camion','شاحنة'],['camionnette','سيارة نفعية'],['autre','أخرى']];
+  const opts=order.filter(([k])=>state.tariffs[k]).map(([k,label])=>`<option value="${k}">${esc(label)}</option>`);
+  s.innerHTML='<option value="">— اختار نوع المركبة أولاً —</option>'+opts.join('')+'<option value="autre_chose">صنف آخر — تعريفة يدوية</option>';
+  if(!document.getElementById('eEntryDate').value)document.getElementById('eEntryDate').value=new Date().toISOString().slice(0,10);
+  toggleCustomVehicleFields();
+}
+function vehicleClassOptions(type){
+  // السلاسل العادية التونسية طبق الفصل 4 من قرار وزير النقل المؤرخ في 25 جانفي 2000.
+  const opts={
+    voiture:[['car_tn','سيارة تونسية — تونس'],['car_foreign','سيارة أجنبية — ن ت']],
+    moto:[['moto_dn','دراجة نارية — د ن']],
+    camion:[['truck_tn','شاحنة — تونس']],
+    camionnette:[['utility_tn','سيارة نفعية — تونس']],
+    autre:[
+      ['tractor_agri','جرار فلاحي — ج ف'],
+      ['tractor_road','جرار طرقي / معدّة خاصة — م خ'],
+      ['trailer_agri','مقطورة أو نصف مقطورة فلاحية — ع م'],
+      ['trailer_other','مقطورة أو نصف مقطورة غير فلاحية — ع م'],
+      ['agri_machine','آلة أو معدّة فلاحية — أ ف'],
+      ['public_works','معدّة أشغال عمومية أو صناعية — م خ'],
+      ['other_doc','صنف آخر — حسب سلسلة بطاقة التسجيل']
+    ]
+  };
+  if(type==='autre_chose') return [['other_doc','صنف آخر — حسب سلسلة بطاقة التسجيل']];
+  return opts[type]||[['other_doc','حسب سلسلة بطاقة التسجيل']];
+}
+function plateOptionsForClass(cls){
+  const labels={
+    car_tn:'سيارة تونسية — سلسلة تونس',car_foreign:'سيارة أجنبية — ن ت',truck_tn:'سلسلة تونس — تونس',utility_tn:'سلسلة تونس — تونس',
+    moto_dn:'دراجة نارية — د ن',tractor_agri:'جرار فلاحي — ج ف',
+    tractor_road:'معدّة خاصة — م خ',trailer_agri:'عربة مجرورة — ع م',
+    trailer_other:'عربة مجرورة — ع م',agri_machine:'آلة فلاحية — أ ف',
+    public_works:'معدّة خاصة — م خ',other_doc:'سلسلة أخرى — حسب بطاقة التسجيل'
+  };
+  return [{code:cls,prefix:'',label:labels[cls]||'رقم التسجيل حسب الوثيقة الرسمية'}];
+}
+function updateVehicleClassAndPlate(){
+  const type=document.getElementById('eType').value;
+  const classWrap=document.getElementById('eVehicleClassWrap');
+  const plateCard=document.getElementById('plateCard');
+  const classSel=document.getElementById('eVehicleClass');
+  if(!type){classWrap.classList.add('hidden');plateCard.classList.add('hidden');document.getElementById('plateEntryBox').classList.add('hidden');return;}
+  const options=vehicleClassOptions(type);classWrap.classList.toggle('hidden',options.length===1);
+  classSel.innerHTML=options.map(([v,l])=>`<option value="${v}">${esc(l)}</option>`).join('');
+  const cls=classSel.value;
+  const plates=plateOptionsForClass(cls);
+  document.getElementById('plateSeries').innerHTML=plates.map(x=>`<option value="${x.code}" data-prefix="${x.prefix}">${esc(x.label)}</option>`).join('');
+  plateCard.classList.remove('hidden');
+  document.getElementById('plateEntryBox').classList.add('hidden');
+  ['eMatPartA','eMatPartB','eMatNumber','eMatFree','eMat'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+}
+function toggleCustomVehicleFields(){
+  const custom=document.getElementById('eType').value==='autre_chose';
+  ['eCustomTypeWrap','eCustomRemWrap','eCustomParkWrap'].forEach(id=>document.getElementById(id).classList.toggle('hidden',!custom));
+  renderSelectedTariffPreview();
+}
+function renderSelectedTariffPreview(){
+  const type=document.getElementById('eType')?.value;
+  const box=document.getElementById('selectedTariffPreview');
+  if(!box)return;
+  let label='',rem=0,park=0;
+  if(type==='autre_chose'){
+    label=document.getElementById('eCustomType')?.value.trim()||'صنف آخر';
+    rem=document.getElementById('eCustomRem')?.value;
+    park=document.getElementById('eCustomPark')?.value;
+    box.innerHTML='<b>تعريفة يدوية — '+esc(label)+'</b><br>معلوم الرفع : '+(rem===''||rem==null?'يُحدّد لاحقاً':money(Number(rem)||0))+'<br>معلوم الحراسة لليوم : '+(park===''||park==null?'يُحدّد لاحقاً':money(Number(park)||0));
+    return;
+  }
+  const t=state.tariffs[type];
+  if(!t){box.textContent='Tarif indisponible : vérifiez التعريفات — الفني.';return;}
+  label=t.label||type; rem=Number(t.remorquage)||0; park=Number(t.gardiennage)||0;
+  box.innerHTML='<b>التعريفة المعتمدة — '+esc(label)+'</b><br>معلوم الرفع : '+money(rem)+'<br>معلوم الحراسة لليوم : '+money(park)+'<br><span class="muted">Ces montants viennent de التعريفات — الفني.</span>';
+}
+function renderTariffs(){
+  const box=document.getElementById('tariffForm');
+  box.innerHTML=Object.entries(state.tariffs).map(([k,v])=>`
+  <div><label>${esc(v.label)} — معلوم الرفع</label><input data-tariff="${k}" data-field="remorquage" type="number" min="0" step=".01" value="${v.remorquage}"></div>
+  <div><label>${esc(v.label)} — معلوم الحراسة لليوم</label><input data-tariff="${k}" data-field="gardiennage" type="number" min="0" step=".01" value="${v.gardiennage}"></div>`).join('');
+}
+function renderDashboard(){
+  const present=state.vehicles.filter(v=>v.status==='present');
+  const released=state.vehicles.filter(v=>v.status==='released'&&isToday(v.releaseAt));
+  const revenue=state.vehicles.filter(v=>v.status==='released').reduce((a,v)=>a+Number(v.total||0),0);
+  document.getElementById('sPresent').textContent=present.length;
+  document.getElementById('sReleased').textContent=released.length;
+  document.getElementById('sRevenue').textContent=money(revenue);
+  document.getElementById('sSms').textContent=smsLog().length;
+  const old=present.filter(v=>(Date.now()-new Date(v.entryAt).getTime())/86400000>=30);
+  const missing=present.filter(v=>!v.documentFile);
+  const alertBox=document.getElementById('dashAlerts');
+  if(alertBox)alertBox.innerHTML=(old.length?`<div>⚠️ ${old.length} مركبة تجاوزت 30 يوماً في المحجز.</div>`:'<div>✓ لا توجد مركبات تجاوزت 30 يوماً.</div>')+(missing.length?`<div>📄 ${missing.length} ملفاً دون وثيقة مرفقة.</div>`:'<div>✓ جميع الملفات الموجودة تتضمن وثيقة.</div>');
+  const rows=state.logs.slice(0,12).map(l=>`<tr><td>${fmt(l.at)}</td><td>${esc(l.type)}</td><td>${esc(l.detail)}</td><td>${esc(l.by)}</td></tr>`).join('');
+  document.getElementById('dashLog').innerHTML=`<table><thead><tr><th>التاريخ</th><th>العملية</th><th>التفاصيل</th><th>المستخدم</th></tr></thead><tbody>${rows||'<tr><td colspan="4">لا توجد عمليات</td></tr>'}</tbody></table>`;
+}
+
+function search(q,onlyPresent=false){
+  q=(q||'').trim().toLowerCase();
+  return state.vehicles.filter(v=>{
+    if(onlyPresent&&v.status!=='present')return false;
+    if(!q)return true;
+    return [v.mat,v.cin,v.owner,v.phone,v.car,v.reason,v.type,v.authority,v.authorityName].some(x=>String(x||'').toLowerCase().includes(q));
+  });
+}
+function renderEntryResults(q=''){
+  if(!current)return;
+  const r=search(q,true);
+  document.getElementById('entryResults').innerHTML=tableVehicles(r,true);
+}
+function renderCashResults(q=''){
+  if(!current)return;
+  const r=search(q,true);
+  document.getElementById('cashResults').innerHTML=tableVehicles(r,false,true);
+}
+function renderArchive(q=''){
+  const box=document.getElementById('archiveResults');
+  if(!box) return;
+  try {
+    const r=search(q,false);
+    box.innerHTML=tableVehicles(r,false,false,true);
+  } catch(err) {
+    console.error('renderArchive failed',err);
+    box.innerHTML='<div class="notice">تعذّر إظهار النتائج. أعد فتح التطبيق وحاول مجدداً.</div>';
+  }
+}
+window.runArchiveSearchNow=function(){
+  const input=document.getElementById('archiveSearch');
+  const box=document.getElementById('archiveResults');
+  if(!input || !box) return;
+  renderArchive(input.value);
+};
+
+function tableVehicles(arr,edit=false,cash=false,archive=false){
+  if(!arr.length)return '<div class="notice">لا توجد سجلات مطابقة.</div>';
+  return `<div class="tablewrap"><table><thead><tr>
+  <th>رقم التسجيل</th><th>نوع المركبة</th><th>المركبة</th><th>المالك</th><th>تاريخ الدخول</th><th>المدة / الخروج</th><th>المبلغ</th><th>الحالة</th><th>الإجراء</th>
+  </tr></thead><tbody>${arr.map(v=>{
+    const b=bill(v), type=state.tariffs[v.type]?.label||v.type;
+    let action='';
+    if(cash) action=`<button class="btn success" data-pay="${v.id}">تأكيد الدفع</button>`;
+    else if(edit) action=`<button class="btn ghost" data-edit="${v.id}">تعديل</button>`;
+    else if(archive) action=`<button class="btn ghost" data-view="${v.id}">عرض</button>`;
+    return `<tr><td><b>${esc(v.mat)}</b></td><td>${esc(type)}</td><td>${esc(v.car||'-')}</td><td>${esc(v.owner||'-')}<br><span class="small">${esc(v.phone||'')}</span></td><td>${fmt(v.entryAt)}</td><td>${v.status==='present'?b.days+' j':fmt(v.releaseAt)}</td><td>${v.status==='present'?money(b.total):money(v.total)}</td><td><span class="badge ${v.status==='present'?'bred':'bgreen'}">${v.status==='present'?'داخل المأوى':'تم الإخراج'}</span></td><td>${action}</td></tr>`;
+  }).join('')}</tbody></table></div>`;
+}
+
+function normalizePlate(v){return String(v||'').replace(/\s+/g,' ').trim();}
+function selectedPlateSeries(){
+  const s=document.getElementById('plateSeries');const o=s?.options[s.selectedIndex];
+  return {code:s?.value||'',label:o?.textContent||'',prefix:o?.dataset?.prefix||''};
+}
+function fillPlateForm(){
+  const s=selectedPlateSeries();const box=document.getElementById('plateEntryBox');
+  if(!s.code){toast('اختار صنف المركبة');return;}
+  box.classList.remove('hidden');
+  const split=['car_tn','truck_tn','utility_tn'].includes(s.code);
+  const foreign=s.code==='car_foreign';
+  document.getElementById('plateSeriesDisplay').value=s.label;
+  document.getElementById('plateNormalPartA').classList.toggle('hidden',!split);
+  document.getElementById('plateNormalPartB').classList.toggle('hidden',!split);
+  document.getElementById('plateSinglePart').classList.toggle('hidden',!foreign);
+  document.getElementById('plateFreePart').classList.toggle('hidden',split||foreign);
+  document.querySelector('#plateSinglePart label').textContent='رقم السيارة الأجنبية — ن ت *';
+  document.getElementById('plateHelp').textContent=split?'أدخل جزأي رقم التسجيل كما يظهران في وثيقة التسجيل.':foreign?'أدخل الأرقام فقط؛ يضيف التطبيق الرمز ن ت تلقائياً.':'أدخل رقم التسجيل كاملاً وبنفس الحروف والأرقام والمسافات الموجودة في وثيقة التسجيل.';
+  if(split)document.getElementById('eMatPartA').focus();else if(foreign)document.getElementById('eMatNumber').focus();else document.getElementById('eMatFree').focus();
+}
+function onlyDigits(v,max){return String(v||'').replace(/[^0-9٠-٩]/g,'').slice(0,max);}
+function plateValue(){
+  const s=selectedPlateSeries();let mat='';
+  if(['car_tn','truck_tn','utility_tn'].includes(s.code)){
+    const a=onlyDigits(document.getElementById('eMatPartA')?.value||'',3),b=onlyDigits(document.getElementById('eMatPartB')?.value||'',4);
+    mat=(a&&b)?`${a} تونس ${b}`:'';
+  }else if(s.code==='car_foreign'){
+    const n=onlyDigits(document.getElementById('eMatNumber')?.value||'',8);mat=n?`ن ت ${n}`:'';
+  }else{
+    mat=normalizePlate(document.getElementById('eMatFree')?.value||'');
+  }
+  document.getElementById('eMat').value=mat;return mat;
+}
+function validPlate(mat){
+  const s=selectedPlateSeries();
+  if(['car_tn','truck_tn','utility_tn'].includes(s.code))return onlyDigits(document.getElementById('eMatPartA')?.value||'',3).length===3&&onlyDigits(document.getElementById('eMatPartB')?.value||'',4).length===4;
+  if(s.code==='car_foreign')return onlyDigits(document.getElementById('eMatNumber')?.value||'',8).length>=1;
+  return normalizePlate(document.getElementById('eMatFree')?.value||'').length>=2;
+}
+function readDocument(file){
+  return new Promise((resolve,reject)=>{
+    if(!file){resolve(null);return}
+    
+    const r=new FileReader();r.onload=()=>resolve({name:file.name,type:file.type,size:file.size,data:r.result});r.onerror=()=>reject(new Error('تعذر قراءة الوثيقة / Lecture impossible'));r.readAsDataURL(file);
+  });
+}
+document.getElementById('eType').addEventListener('change',()=>{toggleCustomVehicleFields();updateVehicleClassAndPlate()});
+document.getElementById('eVehicleClass').addEventListener('change',updateVehicleClassAndPlate);
+['eCustomType','eCustomRem','eCustomPark'].forEach(id=>document.getElementById(id).addEventListener('input',renderSelectedTariffPreview));
+
+document.getElementById('eAuthority').addEventListener('change',()=>{
+  const other=document.getElementById('eAuthority').value==='جهة أخرى';
+  document.getElementById('eAuthorityOtherWrap').classList.toggle('hidden',!other);
+  if(!other) document.getElementById('eAuthorityOther').value='';
+});
+
+async function addEntry(){
+  if(!can(current.role,'entry'))return;
+  const mat=plateValue();
+  const chosenType=document.getElementById('eType').value;
+  const entryDate=document.getElementById('eEntryDate').value;
+  const customLabel=document.getElementById('eCustomType').value.trim();
+  const customRem=Number(document.getElementById('eCustomRem').value);
+  const customPark=Number(document.getElementById('eCustomPark').value);
+  if(!entryDate){alert('تاريخ الدخول إجباري');return}
+  if(chosenType==='autre_chose' && (!customLabel || document.getElementById('eCustomRem').value==='' || document.getElementById('eCustomPark').value==='')){alert('اكتب نوع المركبة ومعلوم الرفع ومعلوم الحراسة يدويًا');return}
+  const authority=document.getElementById('eAuthority').value;
+  const authorityName=document.getElementById('eAuthorityName').value.trim();
+  if(!mat||!validPlate(mat)){alert('رقم التسجيل إجباري. أدخله كما هو في وثيقة التسجيل.');return}
+  if(!authorityName){alert('اسم العون إجباري');return}
+  if(state.vehicles.some(x=>x.status==='present'&&x.mat===mat)){alert('هذه المركبة مسجلة بالفعل في المحجز.');return}
+  let documentFile=null;
+  try{documentFile=await readDocument(document.getElementById('eDoc').files[0])}catch(err){alert(err.message);return}
+  const tariffAtEntry=chosenType==='autre_chose'?{label:customLabel,remorquage:customRem,gardiennage:customPark}:state.tariffs[chosenType];
+  if(!tariffAtEntry || !Number.isFinite(Number(tariffAtEntry.remorquage)) || !Number.isFinite(Number(tariffAtEntry.gardiennage))){alert('تعريفة الرفع أو الحراسة غير موجودة. راجع التعريفات — الفني.');return}
+  const v={
+    id:crypto.randomUUID?crypto.randomUUID():String(Date.now()),mat,plateSeries:selectedPlateSeries().code,vehicleClass:document.getElementById('eVehicleClass').value,type:chosenType,customLabel:chosenType==='autre_chose'?customLabel:undefined,customTariffs:{label:tariffAtEntry.label||chosenType,remorquage:Number(tariffAtEntry.remorquage),gardiennage:Number(tariffAtEntry.gardiennage)},
+    car:document.getElementById('eCar').value.trim(),color:document.getElementById('eColor').value.trim(),cin:document.getElementById('eCin').value.trim(),
+    owner:document.getElementById('eOwner').value.trim(),phone:document.getElementById('ePhone').value.trim(),reason:document.getElementById('eReason').value.trim(),
+    authority,authorityName,documentFile,entryAt:entryDate+'T12:00:00',entryBy:current.name,status:'present',releaseAt:null,total:null,paidBy:null
+  };
+  state.vehicles.unshift(v);log('تسجيل دخول مركبة',v.mat+' — '+(v.type==='autre_chose'?(v.customLabel||'صنف آخر'):(state.tariffs[v.type]?.label||v.type))+' — '+v.authority);save();clearEntry();renderAll();toast(' تم حفظ التسجيل مع جهة الحجز والوثيقة');
+}
+function clearEntry(){
+  ['eMat','eMatNumber','eMatPartA','eMatPartB','eMatFree','eCar','eColor','eCin','eOwner','ePhone','eReason','eAuthorityName','eAuthorityOther'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='' });
+document.getElementById('plateEntryBox')?.classList.add('hidden');
+document.getElementById('plateCard')?.classList.add('hidden');document.getElementById('plateSeries').innerHTML='';document.getElementById('eVehicleClassWrap')?.classList.add('hidden');
+const authorityOtherWrap=document.getElementById('eAuthorityOtherWrap');if(authorityOtherWrap)authorityOtherWrap.classList.add('hidden');
+  ['eCustomType','eCustomRem','eCustomPark'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
+  const ed=document.getElementById('eEntryDate');if(ed)ed.value=new Date().toISOString().slice(0,10);
+  const et=document.getElementById('eType');if(et)et.value='';toggleCustomVehicleFields();updateVehicleClassAndPlate();
+  const f=document.getElementById('eDoc');if(f)f.value='';
+  const info=document.getElementById('eDocInfo');if(info)info.textContent='اختياري — JPG, PNG أو PDF (بدون حدّ للحجم)';
+}
+
+function editVehicle(id){
+  const v=state.vehicles.find(x=>x.id===id);if(!v)return;
+  const c=`<h2>تعديل ملف المركبة</h2><div class="formgrid">
+  <div style="grid-column:1/-1"><label>رقم التسجيل *</label><input id="mMat" inputmode="text" autocomplete="off" value="${esc(v.mat)}" placeholder="مثال: ن ت 123456 / مثال: ن ت 123456"></div>
+  <div><label>نوع المركبة</label><select id="mType">${[['voiture','سيارة'],['moto','دراجة نارية'],['camion','شاحنة'],['camionnette','سيارة نفعية'],['autre','أخرى']].filter(([k])=>state.tariffs[k]).map(([k,label])=>`<option value="${k}" ${k===v.type?'selected':''}>${esc(label)} - معلوم الرفع</option><option value="${k}" ${k===v.type?'selected':''}>${esc(label)} - معلوم الحراسة لليوم</option>`).join('')}<option value="autre_chose" ${v.type==='autre_chose'?'selected':''}>${esc(v.customLabel||'صنف آخر — تعريفة يدوية')}</option></select></div>
+  <div><label>المركبة</label><input id="mCar" value="${esc(v.car)}"></div>
+  <div><label>اللون</label><input id="mColor" value="${esc(v.color)}"></div>
+  <div><label>بطاقة التعريف</label><input id="mCin" value="${esc(v.cin)}"></div>
+  <div><label>المالك</label><input id="mOwner" value="${esc(v.owner)}"></div>
+  <div><label>الهاتف</label><input id="mPhone" value="${esc(v.phone)}"></div>
+  <div><label>سبب الحجز</label><input id="mReason" value="${esc(v.reason)}"></div>
+  <div><label>الجهة الحاجزة</label><select id="mAuthority">${['حرس المرور','الأمن العمومي','الحرس البلدي','الديوانة','مندوبية الفلاحة','البلدية','جهة أخرى'].map(x=>`<option value="${esc(x)}" ${x===v.authority?'selected':''}>${esc(x)}</option>`).join('')}</select><input id="mAuthorityOther" class="${['حرس المرور','الأمن العمومي','الحرس البلدي','الديوانة','مندوبية الفلاحة','البلدية'].includes(v.authority)?'hidden':''}" style="margin-top:6px" placeholder="اكتب اسم الجهة الأخرى" value="${esc(['حرس المرور','الأمن العمومي','الحرس البلدي','الديوانة','مندوبية الفلاحة','البلدية'].includes(v.authority)?'':v.authority)}"></div>
+  <div><label>اسم العون المسؤول</label><input id="mAuthorityName" value="${esc(v.authorityName)}"></div>
+  <div style="grid-column:1/-1"><label>إضافة وثيقة أو استبدالها</label><input id="mDoc" type="file" accept="image/*,application/pdf" capture="environment"><div class="small muted">${v.documentFile?'وثيقة موجودة / وثيقة محفوظة : '+esc(v.documentFile.name):'لا توجد وثيقة محفوظة'}</div></div>
+  </div><div class="actions"><button id="saveEdit" class="btn primary">حفظ التعديلات</button></div>`;
+  openModal(c);
+  document.getElementById('mAuthority').onchange=()=>{const isOther=document.getElementById('mAuthority').value==='جهة أخرى';document.getElementById('mAuthorityOther').classList.toggle('hidden',!isOther);if(!isOther)document.getElementById('mAuthorityOther').value='';};
+  document.getElementById('saveEdit').onclick=async()=>{
+    const newMat=normalizePlate(document.getElementById('mMat').value);
+    let authority=document.getElementById('mAuthority').value; if(authority==='جهة أخرى'){authority=document.getElementById('mAuthorityOther').value.trim();if(!authority){alert('يرجى كتابة اسم الجهة الحاجزة');return}}
+    const authorityName=document.getElementById('mAuthorityName').value.trim();
+    if(!newMat||newMat.length<3||!authorityName){alert('رقم التسجيل واسم العون المسؤول إجباريان');return}
+    if(state.vehicles.some(x=>x.id!==id&&x.status==='present'&&x.mat===newMat)){alert('هذه المركبة مسجلة بالفعل في المحجز.');return}
+    let documentFile=v.documentFile||null;
+    try{const f=await readDocument(document.getElementById('mDoc').files[0]);if(f)documentFile=f}catch(err){alert(err.message);return}
+    Object.assign(v,{mat:newMat,type:document.getElementById('mType').value,car:document.getElementById('mCar').value.trim(),color:document.getElementById('mColor').value.trim(),cin:document.getElementById('mCin').value.trim(),owner:document.getElementById('mOwner').value.trim(),phone:document.getElementById('mPhone').value.trim(),reason:document.getElementById('mReason').value.trim(),authority,authorityName,documentFile});
+    log('تعديل الملف',v.mat);save();closeModal();renderAll();toast(' تم حفظ التعديل');
+  };
+}
+
+function preparePayment(id){
+  const v=state.vehicles.find(x=>x.id===id);if(!v)return;
+  selected=v;const b=bill(v);
+  document.getElementById('invoiceArea').innerHTML=invoiceHtml(v,b,false);
+  document.querySelector('[data-section="cashier"]').click();
+}
+async function validatePayment(){
+  if(!selected)return;
+  const v=state.vehicles.find(x=>x.id===selected.id);if(!v)return;
+  const b=bill(v);
+  v.status='released';v.releaseAt=new Date().toISOString();v.total=b.total;v.paidBy=current.name;
+  state.invoiceNo++;
+  log('تم تأكيد الدفع',v.mat+' — '+money(b.total));
+  save();
+  const ownerMessage=`Bonjour ${v.owner||''}, votre véhicule ${v.mat} est payé. المبلغ: ${money(b.total)}. يمكنكم استلام المركبة.`;
+  const chefMessage=`المحجز البلدي: تم تأكيد الدفع للمركبة ${v.mat}. المبلغ: ${money(b.total)}. المركبة جاهزة للإخراج.`;
+  let smsResult={ok:false};
+  try{
+    const r=await fetch('/api/sms/payment',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ownerPhone:v.phone,ownerMessage,chefMessage})});
+    const d=await r.json().catch(()=>({}));
+    if(!r.ok||!d.ok) throw new Error(d.error||'خطأ في خادم الرسائل');
+    smsResult=d;
+    log('رسالة إخراج',`${v.phone||'sans numéro'} — propriétaire: ${d.ownerSid?'envoyé':'non envoyé'} — chef: ${d.chefSid?'envoyé':'non envoyé'}`);
+    if(d.ownerSid||d.chefSid) toast(' تم تأكيد الدفع + تم إرسال الرسالة');
+    else toast(' تم تأكيد الدفع');
+  }catch(e){
+    log('رسالة إخراج','فشل: '+e.message);
+    if(v.phone) toast('⚠ تم تأكيد الدفع, لم يتم إرسال الرسالة: '+e.message);
+    else toast(' تم تأكيد الدفع — aucun numéro propriétaire');
+  }
+  document.getElementById('invoiceArea').innerHTML=invoiceHtml(v,b,true);
+  selected=null;renderAll();
+}
+function invoiceHtml(v,b,after){
+ return `<div class="printarea receipt">
+ <h2>فاتورة / وصل — المحجز البلدي</h2>
+ <div class="line"><span>رقم الفاتورة</span><b>F-${state.invoiceNo}</b></div>
+ <div class="line"><span>التاريخ</span><b>${fmt(after?v.releaseAt:new Date())}</b></div>
+ <div class="line"><span>رقم التسجيل</span><b>${esc(v.mat)}</b></div>
+ <div class="line"><span>نوع المركبة</span><b>${esc(v.type==='autre_chose'?(v.customLabel||'صنف آخر'):(state.tariffs[v.type]?.label||v.type))}</b></div>
+ <div class="line"><span>المركبة</span><b>${esc(v.car||'-')}</b></div>
+ <div class="line"><span>المالك</span><b>${esc(v.owner||'-')}</b></div>
+ ${v.documentFile ? `<div style="margin:14px 0;padding:14px;border:2px solid #2b8ed6;border-radius:12px;background:#eef8ff"><div style="font-weight:800;margin-bottom:8px"> وثيقة المركبة</div><div class="small muted" style="margin-bottom:10px">${esc(v.documentFile.name)}</div>${String(v.documentFile.type||'').startsWith('image/') ? `<img src="${v.documentFile.data}" alt="Document" style="display:block;max-width:100%;max-height:420px;object-fit:contain;border-radius:8px;background:#fff;margin-bottom:10px">` : `<div class="notice">ملف PDF — اضغط على الزر لفتحه.</div>`}<a class="btn primary" href="${v.documentFile.data}" target="_blank" rel="noopener">فتح الوثيقة</a></div>` : `<div class="notice" style="margin:14px 0">لا توجد وثيقة محفوظة</div>`}
+ <div class="line"><span>تاريخ الدخول</span><b>${fmt(v.entryAt)}</b></div>
+ <div class="line"><span>مدة الاحتساب</span><b>${b.days} يوم</b></div>
+ <div class="line"><span>معلوم الرفع</span><b>${money(b.remorquage)}</b></div>
+ <div class="line"><span>الحراسة</span><b>${money(b.parking)}</b></div>
+ <div class="line"><span>المبلغ قبل التخفيض</span><b>${money(b.subtotal??b.total)}</b></div>
+ ${b.eligible?`<div class="line" style="color:#15803d"><span>تخفيض استثنائي بنسبة 30٪ — للمركبات المسجلة قبل 11/12/2025</span><b>− ${money(b.discount)}</b></div>`:''}
+ <div class="line" style="font-size:20px"><span>المبلغ الجملي المطلوب</span><b>${money(b.total)}</b></div>
+ <p class="muted">تم تأكيد الدفع من طرف: ${esc(v.paidBy||current?.name||'')}</p>
+ </div>
+ <div class="actions no-print">${after?'':'<button id="validatePay" class="btn success">تأكيد الدفع</button>'}<button id="printInvoice" class="btn primary">طباعة</button></div>`;
+}
+
+function openModal(c){document.getElementById('modalContent').innerHTML=c;document.getElementById('modal').classList.remove('hidden')}
+function closeModal(){document.getElementById('modal').classList.add('hidden')}
+function viewVehicle(id){
+ const v=state.vehicles.find(x=>x.id===id);if(!v)return;const b=bill(v);
+ const doc=v.documentFile?`<a href="${v.documentFile.data}" target="_blank" rel="noopener">📎 ${esc(v.documentFile.name)}</a>`:'لا توجد وثيقة محفوظة';
+ openModal(`<h2>ملف المركبة</h2><div class="grid2"><div><b>رقم التسجيل</b><br>${esc(v.mat)}</div><div><b>نوع المركبة</b><br>${esc(v.type==='autre_chose'?(v.customLabel||'صنف آخر'):(state.tariffs[v.type]?.label||v.type))}</div><div><b>المالك</b><br>${esc(v.owner||'-')}</div><div><b>بطاقة التعريف</b><br>${esc(v.cin||'-')}</div><div><b>الهاتف</b><br>${esc(v.phone||'-')}</div><div><b>جهة الحجز</b><br>${esc(v.authority||'-')}</div><div><b>العون المسؤول</b><br>${esc(v.authorityName||'-')}</div><div><b>الوثيقة</b><br>${doc}</div><div><b>تاريخ الدخول</b><br>${fmt(v.entryAt)}</div><div><b>تاريخ الخروج</b><br>${fmt(v.releaseAt)}</div><div><b>المبلغ الجملي</b><br>${money(v.total??b.total)}</div></div>`);
+}
+
+function reportRows(){
+ const from=document.getElementById('reportFrom')?.value||'';
+ const to=document.getElementById('reportTo')?.value||'';
+ const status=document.getElementById('reportStatus')?.value||'all';
+ const type=document.getElementById('reportType')?.value||'all';
+ return state.vehicles.filter(v=>{
+   const d=String(v.entryAt||'').slice(0,10);
+   return (!from||d>=from)&&(!to||d<=to)&&(status==='all'||v.status===status)&&(type==='all'||v.type===type);
+ }).sort((a,b)=>new Date(b.entryAt)-new Date(a.entryAt));
+}
+function renderReport(){
+ const rows=reportRows();
+ const present=rows.filter(v=>v.status==='present').length;
+ const released=rows.filter(v=>v.status==='released').length;
+ const revenue=rows.filter(v=>v.status==='released').reduce((n,v)=>n+Number(v.total||0),0);
+ document.getElementById('reportSummary').innerHTML=`<div class="card"><div class="muted">عدد الملفات</div><div class="stat">${rows.length}</div></div><div class="card"><div class="muted">داخل المحجز</div><div class="stat">${present}</div></div><div class="card"><div class="muted">تم إخراجها</div><div class="stat">${released}</div></div><div class="card"><div class="muted">المداخيل المسجلة</div><div class="stat">${money(revenue)}</div></div>`;
+ document.getElementById('reportResults').innerHTML=rows.length?`<div class="tablewrap"><table><thead><tr><th>رقم التسجيل</th><th>الصنف</th><th>المالك</th><th>تاريخ الدخول</th><th>تاريخ الخروج</th><th>الحالة</th><th>المبلغ</th></tr></thead><tbody>${rows.map(v=>`<tr><td>${esc(v.mat)}</td><td>${esc(state.tariffs[v.type]?.label||v.customLabel||v.type)}</td><td>${esc(v.owner||'-')}</td><td>${fmt(v.entryAt)}</td><td>${fmt(v.releaseAt)}</td><td>${v.status==='present'?'داخل المحجز':'تم الإخراج'}</td><td>${money(v.status==='released'?v.total:bill(v).total)}</td></tr>`).join('')}</tbody></table></div>`:'<div class="notice">لا توجد نتائج في الفترة المحددة.</div>';
+ window.currentReportRows=rows;
+}
+function exportReportCsv(){
+ const rows=window.currentReportRows||reportRows();
+ const head=['رقم التسجيل','نوع المركبة','المالك','رقم الهاتف','تاريخ الدخول','تاريخ الخروج','الجهة الحاجزة','العون المسؤول','الحالة','المبلغ'];
+ const data=rows.map(v=>[v.mat,state.tariffs[v.type]?.label||v.customLabel||v.type,v.owner,v.phone,v.entryAt,v.releaseAt,v.authority,v.authorityName,v.status==='present'?'داخل المحجز':'تم الإخراج',v.status==='released'?v.total:bill(v).total]);
+ const csv='\ufeff'+[head,...data].map(row=>row.map(x=>'"'+String(x??'').replace(/"/g,'""')+'"').join(';')).join('\r\n');
+ const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='تقرير_المحجز.csv';a.click();URL.revokeObjectURL(a.href);
+}
+function populateReportTypes(){const s=document.getElementById('reportType');if(!s)return;s.innerHTML='<option value="all">كل الأصناف</option>'+Object.entries(state.tariffs).map(([k,v])=>`<option value="${esc(k)}">${esc(v.label)}</option>`).join('');}
+function saveTariffs(){
+ if(current.role!=='technician')return;
+ document.querySelectorAll('[data-tariff]').forEach(i=>state.tariffs[i.dataset.tariff][i.dataset.field]=Number(i.value)||0);
+ save();log('Modification tarifs','تم تحديث التعريفات');renderAll();toast(' تم حفظ التعريفات');
+}
+function exportDb(){
+ if(current.role!=='technician')return;
+ const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});
+ const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='fourriere_base.json';a.click();URL.revokeObjectURL(a.href);
+}
+
+document.getElementById('loginBtn').onclick=login;
+document.getElementById('loginPin').onkeydown=e=>{if(e.key==='Enter')login()};
+document.getElementById('logoutBtn').onclick=logout;
+document.getElementById('saveEntry').onclick=addEntry;
+document.getElementById('eType').addEventListener('change',()=>{toggleCustomVehicleFields();updateVehicleClassAndPlate()});
+document.getElementById('eVehicleClass').addEventListener('change',updateVehicleClassAndPlate);
+document.getElementById('fillPlateBtn').onclick=fillPlateForm;
+document.getElementById('plateSeries').onchange=()=>{document.getElementById('plateEntryBox').classList.add('hidden');['eMatPartA','eMatPartB','eMatNumber','eMatFree'].forEach(id=>document.getElementById(id).value='');plateValue()};
+document.getElementById('eMatPartA').oninput=e=>{e.target.value=onlyDigits(e.target.value,3);plateValue()};
+document.getElementById('eMatPartB').oninput=e=>{e.target.value=onlyDigits(e.target.value,4);plateValue()};
+document.getElementById('eMatNumber').oninput=e=>{e.target.value=onlyDigits(e.target.value,8);plateValue()};
+document.getElementById('eMatFree').oninput=plateValue;
+document.getElementById('eDoc').onchange=e=>{const f=e.target.files[0];document.getElementById('eDocInfo').textContent=f?`${f.name} — ${(f.size/1024/1024).toFixed(2)} Mo`:'اختياري — JPG, PNG أو PDF (بدون حدّ للحجم)'};
+
+document.getElementById('clearEntry').onclick=clearEntry;
+document.getElementById('entrySearchBtn').onclick=()=>renderEntryResults(document.getElementById('entrySearch').value);
+document.getElementById('cashSearchBtn').onclick=()=>renderCashResults(document.getElementById('cashSearch').value);
+document.getElementById('archiveSearchBtn').onclick=()=>renderArchive(document.getElementById('archiveSearch').value);
+document.getElementById('archiveSearch').addEventListener('input',e=>renderArchive(e.target.value));
+document.getElementById('saveTariffs').onclick=saveTariffs;
+document.getElementById('exportBtn').onclick=exportDb;
+document.getElementById('runReport').onclick=renderReport;
+document.getElementById('exportReport').onclick=()=>{renderReport();exportReportCsv()};
+document.getElementById('printReport').onclick=()=>{renderReport();window.print()};
+document.getElementById('modalClose').onclick=closeModal;
+document.getElementById('testSmsBtn').onclick=testSms;
+
+document.querySelectorAll('[data-section]').forEach(btn=>btn.addEventListener('click',()=>{
+ const target=document.getElementById(btn.dataset.section);
+ if(!target){toast('القسم غير موجود');return;}
+ document.querySelectorAll('.section').forEach(s=>s.classList.add('hidden'));
+ target.classList.remove('hidden');
+ document.querySelectorAll('[data-section]').forEach(x=>x.classList.remove('active'));
+ btn.classList.add('active');
+ if(btn.dataset.section==='archive') renderArchive(document.getElementById('archiveSearch').value);
+ if(btn.dataset.section==='entry') renderEntryResults(document.getElementById('entrySearch').value);
+ if(btn.dataset.section==='cashier') renderCashResults(document.getElementById('cashSearch').value);
+ if(btn.dataset.section==='reports'){populateReportTypes();renderReport();}
+}));
+
+document.addEventListener('click',e=>{
+ const edit=e.target.closest('[data-edit]');if(edit){editVehicle(edit.dataset.edit);return}
+ const pay=e.target.closest('[data-pay]');if(pay){preparePayment(pay.dataset.pay);return}
+ const view=e.target.closest('[data-view]');if(view){viewVehicle(view.dataset.view);return}
+ if(e.target.id==='validatePay'){validatePayment();return}
+ if(e.target.id==='printInvoice'){window.print();return}
+});
+
+renderAll();
+checkSmsServer();
+})();
+
+// ===== SMS RÉEL =====
+function normalizePhoneSMS(phone){
+  let p=String(phone||'').trim().replace(/[\s().-]/g,'');
+  if(/^\d{8}$/.test(p)) p='+216'+p;
+  else if(/^216\d{8}$/.test(p)) p='+'+p;
+  return p;
+}
+async function checkSmsServer(){
+  const el=document.getElementById('smsServerStatus'); if(!el)return;
+  try{ const r=await fetch('/api/sms/status'); const d=await r.json();
+    el.textContent=d.configured?' خدمة الرسائل جاهزة ومضبوطة':'الخادم يعمل لكن خدمة الرسائل غير مضبوطة بعد';
+  }catch(e){el.textContent=' تعذّر العثور على خادم الرسائل. افتح التطبيق عبر الخادم المحلي.';}
+}
+async function sendRealPaymentSMS(v,total){
+  const ownerPhone=normalizePhoneSMS(v.phone);
+  const ownerMessage=`المحجز البلدي: تم تأكيد الدفع للمركبة ${v.mat}. المبلغ: ${money(total)}. يمكنكم استلام المركبة.`;
+  const chefMessage=`المحجز البلدي: تم تأكيد الدفع للمركبة ${v.mat}. المبلغ: ${money(total)}. المركبة جاهزة للإخراج.`;
+  if(!ownerPhone && !chefMessage) return {ok:false};
+  const r=await fetch('/api/sms/payment',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ownerPhone,ownerMessage,chefMessage})});
+  const d=await r.json(); if(!r.ok||!d.ok) throw new Error(d.error||'فشل إرسال الرسالة'); return d;
+}
+async function testRealSMS(){
+  const phone=normalizePhoneSMS(document.getElementById('smsTestPhone')?.value);
+  if(!phone){alert('أدخل رقم الهاتف لإرسال الرسالة التجريبية.');return;}
+  try{const r=await fetch('/api/sms/send',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({to:phone,message:'رسالة تجريبية — نظام المحجز البلدي: خدمة الرسائل تعمل.'})}); const d=await r.json(); if(!r.ok||!d.ok)throw new Error(d.error||'فشل إرسال الرسالة'); alert(' تم إرسال الرسالة');}
+  catch(e){alert('❌ لم يتم إرسال الرسالة: '+e.message);}
+}
+
+
+</script>
+
+
+</body>
+</html>
